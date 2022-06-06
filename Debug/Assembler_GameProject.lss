@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm Mon Jun 06 14:16:05 2022
+AVRASM ver. 2.2.8  C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm Mon Jun 06 23:50:57 2022
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
@@ -995,7 +995,7 @@ AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GamePr
                                  	// implement a solution for even AND odd error points
                                  // generate random number between 0 and 3 -> for a game with 4 LEDs
                                  	// just check if last bits of number are 00,01,10,11
-                                 // Timers
+                                 // Timer
                                  
                                  .equ fcpu = 16000000
                                  .equ baud = 9600

@@ -9,7 +9,7 @@
 	// implement a solution for even AND odd error points
 // generate random number between 0 and 3 -> for a game with 4 LEDs
 	// just check if last bits of number are 00,01,10,11
-// Timers
+// Timer
 
 .equ fcpu = 16000000
 .equ baud = 9600
