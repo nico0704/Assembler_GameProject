@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm Mon Jun 06 14:06:48 2022
+AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm Mon Jun 06 14:16:05 2022
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
@@ -989,14 +989,13 @@ AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GamePr
                                  ; Author : Nico Schroeder
                                  
                                  // TODO :
-                                 // Create Git Repository
                                  // Generate Lose Sound
                                  // Punishment for error:
                                  	// check if punishment sets number of points below zero
                                  	// implement a solution for even AND odd error points
                                  // generate random number between 0 and 3 -> for a game with 4 LEDs
                                  	// just check if last bits of number are 00,01,10,11
-                                 // Timer
+                                 // Timers
                                  
                                  .equ fcpu = 16000000
                                  .equ baud = 9600
@@ -1015,15 +1014,14 @@ AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GamePr
 000009 3a53
 00000a 0020                      hwTable: .db "YOUR CURRENT_POINTS: ", 0
                                  
-                                 // registers to display points in ascii
-                                 .def first_digit = r7
-                                 .def second_digit = r8 
-                                 
                                  .def check_for_error = r19
                                  .def ascii_shift = r20
                                  .def points = r22
                                  .def random = r23
                                  
+                                 // registers to display points in ascii
+                                 .def first_digit = r24
+                                 .def second_digit = r25
                                  
                                  // init
 00000b 9a52                      sbi DDRD , 2
@@ -1031,8 +1029,8 @@ AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GamePr
 00000d 2766                      clr points
 00000e 2777                      clr random
 00000f 2733                      clr check_for_error
-000010 2477                      clr first_digit
-000011 2488                      clr second_digit
+000010 2788                      clr first_digit
+000011 2799                      clr second_digit
 000012 e340                      ldi ascii_shift, 48
                                  
                                  // set UBBR
@@ -1147,14 +1145,14 @@ AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GamePr
 000067 936f                      	push points // save current points
 000068 d014                      	rcall convert_to_ascii // convert current points in ascii by saving each digit to a different register
 000069 d01c                      	rcall wait_until_empty // wait until USART data register is empty
-00006a 9270 00c6                 	sts UDR0, first_digit // print first digit (10er Stelle) 
+00006a 9380 00c6                 	sts UDR0, first_digit // print first digit (10er Stelle) 
 00006c d019                      	rcall wait_until_empty
-00006d 9280 00c6                 	sts UDR0, second_digit // print second digit (1er Stelle)
+00006d 9390 00c6                 	sts UDR0, second_digit // print second digit (1er Stelle)
 00006f 916f                      	pop points ; get current points from stack
 000070 e02d                      	ldi r18, 13
 000071 940e 0077                 	call transmitChar
-000073 2477                      	clr first_digit
-000074 2488                      	clr second_digit
+000073 2788                      	clr first_digit
+000074 2799                      	clr second_digit
 000075 9508                      	ret
                                  
                                  handleCRLF:
@@ -1168,15 +1166,15 @@ AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GamePr
 00007c 9508                      	ret
                                  
                                  convert_to_ascii:
-                                 	// TODO: convert for two and three digit numbers
+                                 	// TODO: convert for three digit numbers
 00007d 306a                      	cpi points, 10 // check if number is greater than 10
 00007e f424                      	brge div_10 // "divide" number by 10 (actually just subtract 10 until < 10 and increase counter for every subtration)
-00007f 2e86                      	mov second_digit, points
-000080 0e74                      	add first_digit, ascii_shift // add 48
-000081 0e84                      	add second_digit, ascii_shift  // add 48
+00007f 2f96                      	mov second_digit, points
+000080 0f84                      	add first_digit, ascii_shift // add 48
+000081 0f94                      	add second_digit, ascii_shift  // add 48
 000082 9508                      	ret
                                  	div_10:
-000083 9473                      		inc first_digit // increase first digit
+000083 9583                      		inc first_digit // increase first digit
 000084 506a                      		subi points, 10 // subtract 10 from points
 000085 cff7                      		rjmp convert_to_ascii // jump back and reapeat until less than 10
                                  	
@@ -1202,9 +1200,9 @@ counted separately from r26..r31 here.
 
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   1 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
-r5 :   0 r6 :   0 r7 :   5 r8 :   5 r9 :   0 r10:   0 r11:   0 r12:   0 
+r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
 r13:   0 r14:   0 r15:   0 r16:   2 r17:   6 r18:  14 r19:  13 r20:  11 
-r21:   0 r22:   8 r23:   4 r24:   0 r25:   0 r26:   0 r27:   0 r28:   0 
+r21:   0 r22:   8 r23:   4 r24:   5 r25:   5 r26:   0 r27:   0 r28:   0 
 r29:   0 r30:   1 r31:   1 
 Registers used: 12 out of 35 (34.3%)
 

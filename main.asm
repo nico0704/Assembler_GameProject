@@ -3,14 +3,13 @@
 ; Author : Nico Schroeder
 
 // TODO :
-// Create Git Repository
 // Generate Lose Sound
 // Punishment for error:
 	// check if punishment sets number of points below zero
 	// implement a solution for even AND odd error points
 // generate random number between 0 and 3 -> for a game with 4 LEDs
 	// just check if last bits of number are 00,01,10,11
-// Timer
+// Timers
 
 .equ fcpu = 16000000
 .equ baud = 9600
@@ -19,15 +18,14 @@
 
 hwTable: .db "YOUR CURRENT_POINTS: ", 0
 
-// registers to display points in ascii
-.def first_digit = r7
-.def second_digit = r8 
-
 .def check_for_error = r19
 .def ascii_shift = r20
 .def points = r22
 .def random = r23
 
+// registers to display points in ascii
+.def first_digit = r24
+.def second_digit = r25
 
 // init
 sbi DDRD , 2
@@ -172,7 +170,7 @@ transmitChar:
 	ret
 
 convert_to_ascii:
-	// TODO: convert for two and three digit numbers
+	// TODO: convert for three digit numbers
 	cpi points, 10 // check if number is greater than 10
 	brge div_10 // "divide" number by 10 (actually just subtract 10 until < 10 and increase counter for every subtration)
 	mov second_digit, points

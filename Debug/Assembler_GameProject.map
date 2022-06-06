@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm Mon Jun 06 14:06:48 2022
+AVRASM ver. 2.2.8  c:\users\besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm Mon Jun 06 14:16:05 2022
 
 
 EQU  SIGNATURE_000 0000001e
@@ -700,12 +700,12 @@ EQU  baud         00002580
 EQU  ubbr         00000067
 EQU  punishment   00000003
 CSEG hwTable      00000000
-DEF  first_digit  r7
-DEF  second_digit r8
 DEF  check_for_error r19
 DEF  ascii_shift  r20
 DEF  points       r22
 DEF  random       r23
+DEF  first_digit  r24
+DEF  second_digit r25
 CSEG start        0000001c
 CSEG send_current_points 0000005e
 CSEG bit_is_set   00000026
