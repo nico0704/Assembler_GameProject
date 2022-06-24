@@ -24,23 +24,23 @@
  <LABELS>
   <hwTable><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>19</LINE></hwTable>
   <start><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>48</LINE></start>
-  <send_current_points><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>137</LINE></send_current_points>
-  <bit_is_set><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>63</LINE></bit_is_set>
-  <endlosschleife_start0><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>55</LINE></endlosschleife_start0>
-  <ready><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>75</LINE></ready>
-  <buzzer><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>124</LINE></buzzer>
-  <endlosschleife_start1><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>67</LINE></endlosschleife_start1>
-  <decrease_points><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>131</LINE></decrease_points>
-  <delay_1><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>86</LINE></delay_1>
-  <L1><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>93</LINE></L1>
-  <delay_2><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>105</LINE></delay_2>
-  <L2><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>112</LINE></L2>
-  <hwLoop><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>141</LINE></hwLoop>
-  <endLoop><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>148</LINE></endLoop>
-  <transmitChar><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>165</LINE></transmitChar>
-  <convert_to_ascii><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>172</LINE></convert_to_ascii>
-  <wait_until_empty><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>185</LINE></wait_until_empty>
-  <handleCRLF><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>162</LINE></handleCRLF>
-  <div_10><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>180</LINE></div_10>
+  <send_current_points><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>136</LINE></send_current_points>
+  <bit_is_set><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>62</LINE></bit_is_set>
+  <endlosschleife_start0><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>54</LINE></endlosschleife_start0>
+  <ready><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>74</LINE></ready>
+  <buzzer><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>123</LINE></buzzer>
+  <endlosschleife_start1><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>66</LINE></endlosschleife_start1>
+  <decrease_points><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>130</LINE></decrease_points>
+  <delay_1><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>85</LINE></delay_1>
+  <L1><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>92</LINE></L1>
+  <delay_2><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>104</LINE></delay_2>
+  <L2><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>111</LINE></L2>
+  <hwLoop><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>140</LINE></hwLoop>
+  <endLoop><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>147</LINE></endLoop>
+  <transmitChar><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>164</LINE></transmitChar>
+  <convert_to_ascii><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>171</LINE></convert_to_ascii>
+  <wait_until_empty><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>184</LINE></wait_until_empty>
+  <handleCRLF><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>161</LINE></handleCRLF>
+  <div_10><FILE>C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm</FILE><LINE>179</LINE></div_10>
  </LABELS>
 </ASSEMBLER_INFO>
