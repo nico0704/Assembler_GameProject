@@ -279,7 +279,7 @@ convert_to_ascii:
 	ret
 	div_100:
 		inc first_digit ; increase first digit
-		subi points, 100 ; subtract 10 from points
+		subi points, 100 ; subtract 100 from points
 		rjmp convert_to_ascii ; jump back and repeat until less than 100
 	div_10:
 		inc second_digit ; increase first digit

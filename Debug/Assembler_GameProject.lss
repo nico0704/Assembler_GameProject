@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.8  C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm Fri Jun 10 11:20:23 2022
+AVRASM ver. 2.2.8  C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GameProject\Assembler_GameProject\main.asm Fri Jun 24 10:16:23 2022
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.6.364\avrasm\inc\m328Pdef.inc'
@@ -985,23 +985,45 @@ AVRASM ver. 2.2.8  C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GamePr
                                  
                                  ; ***** END OF FILE ******************************************************
                                  
-                                 ; Assembler_GameProject.asm
-                                 ; Author : Franziska Heil, Marie Benzing, Nico Schroeder
+                                 ; Game Project in Assembler
+                                 ; Authors: Franziska Heil, Marie Benzing, Nico Schroeder
                                  ;
-                                 ; TODO :
-                                 ; Generate Lose Sound
-                                 ; Punishment for error:
-                                 	; check if punishment sets number of points below zero
-                                 	; implement a solution for even AND odd error points
-                                 ; generate random number between 0 and 3 -> for a game with 4 LEDs
-                                 	; just check if last bits of number are 00,01,10,11
-                                 ; Timer
+                                 ; Description:
+                                 ;	This is a reaction game. 
+                                 ;	The player has to press the correct button to the corresponding LED.
+                                 ;	The player will hear an error sound if the player presses the wrong button.
+                                 ;	The player can check his current score on the console.
+                                 ;	The game will end if the player makes to many mistakes. 
+                                 ;	The player can set the following game properties:
+                                 ;		max_errors	  -> maximum amount of errors
+                                 ;		points_to_win -> max points to reach to win (1 - 127) 
+                                 ;
+                                 ; Game Setup:
+                                 ;	LED1 in D2
+                                 ;	LED2 in D3
+                                 ;	BUTTON for LED1 in D4
+                                 ;	BUTTON for LED2 in D5
+                                 
+                                 .equ max_errors = 3
+                                 .equ points_to_win = 20
                                  
                                  .equ fcpu = 16000000
                                  .equ baud = 9600
-                                 .equ ubbr = ( fcpu /16/ baud -1) ; oder 16000000 / (16 * 9600)) - 1
-                                 .equ punishment = 3 ; muss ungerade sein
+                                 .equ ubbr = (fcpu/16/baud-1)
                                  
+                                 .def ascii_shift = r19 ; register for ascii shift (+ 48)
+                                 .def points = r20
+                                 .def random = r21
+                                 
+                                 ; registers to display points in ascii
+                                 .def first_digit = r22
+                                 .def second_digit = r23
+                                 .def third_digit = r24
+                                 
+                                 .def error_counter = r13
+                                 .def error_sound_counter = r25
+                                 
+                                 init:
 000000 4f59
 000001 5255
 000002 4320
@@ -1012,175 +1034,325 @@ AVRASM ver. 2.2.8  C:\Users\Besitzer\Documents\Atmel Studio\7.0\Assembler_GamePr
 000007 494f
 000008 544e
 000009 3a53
-00000a 0020                      hwTable: .db "YOUR CURRENT_POINTS: ", 0
-                                 
-                                 .def check_for_error = r19
-                                 .def ascii_shift = r20
-                                 .def points = r22
-                                 .def random = r23
-                                 
-                                 ; registers to display points in ascii
-                                 .def first_digit = r24
-                                 .def second_digit = r25
-                                 
-                                 ; init
+00000a 0020                      hwTable1: .db "YOUR CURRENT_POINTS: ", 0
 00000b 9a52                      sbi DDRD , 2
 00000c 9a53                      sbi DDRD , 3
-00000d 2766                      clr points
-00000e 2777                      clr random
-00000f 2733                      clr check_for_error
-000010 2788                      clr first_digit
-000011 2799                      clr second_digit
-000012 e340                      ldi ascii_shift, 48
+00000d 9a56                      sbi DDRD , 6 ; buzzer output
+00000e 2744                      clr points
+00000f 2755                      clr random
+000010 2766                      clr first_digit
+000011 2777                      clr second_digit
+000012 2788                      clr third_digit
+000013 2799                      clr error_sound_counter
+000014 24dd                      clr error_counter
+000015 2700                      clr r16
+000016 2711                      clr r17
+000017 2722                      clr r18
+000018 e330                      ldi ascii_shift, 48
+000019 984c                      cbi PIND, 4
+00001a 984d                      cbi PIND, 5
+00001b 985a                      cbi PORTD, 2
+00001c 985b                      cbi PORTD, 3
+                                 
                                  
                                  ; set UBBR
-000013 e617                      ldi r17 , LOW ( ubbr )
-000014 9310 00c4                 sts UBRR0L , r17
-000016 e010                      ldi r17 , HIGH ( ubbr )
-000017 9310 00c5                 sts UBRR0H , r17
-000019 e108                      ldi r16 , (1 << RXEN0 ) | (1 << TXEN0 ) ; enable tx and rx
-00001a 9300 00c1                 sts UCSR0B , r16
+00001d e617                      ldi r17 , LOW ( ubbr )
+00001e 9310 00c4                 sts UBRR0L , r17
+000020 e010                      ldi r17 , HIGH ( ubbr )
+000021 9310 00c5                 sts UBRR0H , r17
+000023 e108                      ldi r16 , (1 << RXEN0 ) | (1 << TXEN0 ) ; enable tx and rx
+000024 9300 00c1                 sts UCSR0B , r16
                                  
                                  start: 
-00001c d041                      	rcall send_current_points
-00001d fd70                      	sbrc random, 0 ; skip if bit 0 in random is cleared
-00001e c007                      	rjmp bit_is_set
-00001f 9a5a                      	sbi PORTD ,2 ; turn LED on
-                                 	; Endlosschleife bis user input
+                                 	; print current points on console
+000026 e0f0                      	ldi ZH , high (hwTable1<<1)
+000027 e0e0                      	ldi ZL , low (hwTable1<<1)
+000028 d079                      	rcall send_string
+                                 	g_l:
+000029 fd50                      	sbrc random, 0 ; skip if bit 0 in random is cleared
+00002a c011                      	rjmp bit_is_set
+                                 	bit_is_not_set:
+00002b 9a5a                      	sbi PORTD, 2 ; turn LED on
+                                 	; loop until user input
+00002c ec68                      	ldi r22, 200
+00002d ec78                      	ldi r23, 200
+00002e e189                      	ldi r24, 25
                                  	endlosschleife_start0:
-000020 957a                      		dec random  ; decrease random to generate new "random" number for next round
-000021 994d                      		sbic PIND, 5 ; skip next instruction if input = 0
-000022 c00a                      		rjmp ready
-000023 994c                      		sbic PIND, 4 ; wrong button pressed -> buzzer 
-000024 d031                      		rcall buzzer
-000025 cffa                      		rjmp endlosschleife_start0
+00002f 955a                      		dec random  ; decrease random to generate new "random" number for next round
+000030 994c                      		sbic PIND, 4 ; skip next instruction if input = 0 on PIND 4
+000031 c01b                      		rjmp ready ; correct button was pressed
+000032 994d                      		sbic PIND, 5 ; skip next instruction if input = 0 on PIND 5 
+000033 d04b                      		rcall buzzer ; wrong button was pressed -> call buzzer
+000034 956a                      		dec r22
+000035 f7c9                      		brne endlosschleife_start0
+000036 957a                      		dec r23
+000037 f7b9                      		brne endlosschleife_start0
+000038 958a                      		dec r24
+000039 f7a9                      		brne endlosschleife_start0
+00003a 985a                      		cbi PORTD, 2
+00003b c000                      		rjmp bit_is_set ; no button pressed -> continue
                                  
                                  	bit_is_set:
-                                 	; do that:
-000026 9a5b                      	sbi PORTD, 3 ; turn LED on
-                                 	; Endlosschleife bis user input
+00003c 9a5b                      	sbi PORTD, 3 ; turn LED on
+                                 	; loop until user input
+00003d ec68                      	ldi r22, 200
+00003e ec78                      	ldi r23, 200
+00003f e189                      	ldi r24, 25
                                  	endlosschleife_start1:
-000027 957a                      		dec random ; decrease random to generate new "random" number for next round
-000028 994c                      		sbic PIND, 4 ; skip next instruction if input = 0
-000029 c003                      		rjmp ready
-00002a 994d                      		sbic PIND, 5 ; wrong button pressed -> buzzer 
-00002b d02a                      		rcall buzzer
-00002c cffa                      		rjmp endlosschleife_start1
+000040 955a                      		dec random ; decrease random to generate new "random" number for next round
+000041 994d                      		sbic PIND, 5 ; skip next instruction if input = 0 on PIND 5
+000042 c00a                      		rjmp ready ; correct button was pressed
+000043 994c                      		sbic PIND, 4 ; skip next instruction if input = 0 on PIND 4
+000044 d03a                      		rcall buzzer ; wrong button was pressed -> call buzzer
+000045 956a                      		dec r22
+000046 f7c9                      		brne endlosschleife_start1
+000047 957a                      		dec r23
+000048 f7b9                      		brne endlosschleife_start1
+000049 958a                      		dec r24
+00004a f7a9                      		brne endlosschleife_start1
+00004b 985b                      		cbi PORTD, 3
+00004c cfde                      		rjmp bit_is_not_set
                                  
                                  ready:
-00002d 9563                      	inc points
-00002e fd30                      	sbrc check_for_error, 0
-00002f d02b                      	rcall decrease_points
-000030 984c                      	cbi PIND, 4
-000031 984d                      	cbi PIND, 5
-000032 985a                      	cbi PORTD, 2
-000033 985b                      	cbi PORTD, 3
-000034 d001                      	rcall delay_1
-000035 cfe6                      	rjmp start
+00004d 9543                      	inc points ; increase points by 1
+00004e 933f                      	push r19 ; save register r19
+00004f e134                      	ldi r19, points_to_win
+000050 1743                      	cp points, r19 ; check if current points are equal to points_to_win
+000051 f0a9                      	breq player_wins ; if current points == points_to_win branch player_wins
+000052 913f                      	pop r19 ; get register r19
+000053 984c                      	cbi PIND, 4
+000054 984d                      	cbi PIND, 5
+000055 985a                      	cbi PORTD, 2
+000056 985b                      	cbi PORTD, 3
+000057 d083                      	rcall delay_1
+000058 cfcd                      	rjmp start ; start game loop again
                                  
-                                 delay_1:
-000036 932f                      	push r18
-000037 933f                      	push r19
-000038 934f                      	push r20
-000039 e229                      	ldi r18, 41
-00003a e936                      	ldi r19, 150
-00003b e840                      	ldi r20, 128
-                                 	L1: 
-00003c 954a                      	dec r20
-00003d f7f1                      	brne L1
-00003e 953a                      	dec r19
-00003f f7e1                      	brne L1
-000040 952a                      	dec r18
-000041 f7d1                      	brne L1
-000042 914f                      	pop r20
-000043 913f                      	pop r19
-000044 912f                      	pop r18
-000045 9508                      	ret
+                                 game_over:
+                                 	; print "YOU LOST.. " on console
+000059 4f59
+00005a 2055
+00005b 4f4c
+00005c 5453
+00005d 2e2e
+00005e 0020                      	hwTable2: .db "YOU LOST.. ", 0
+00005f e0f0                      	ldi ZH , high (hwTable2<<1)
+000060 ebe2                      	ldi ZL , low (hwTable2<<1)
+000061 d040                      	rcall send_string 
+                                 	; turn both LEDs off for ca. 2 seconds then start game again
+000062 985a                      	cbi PORTD, 2
+000063 985b                      	cbi PORTD, 3
+000064 d096                      	rcall delay_3
+000065 d095                      	rcall delay_3
+000066 cf99                      	rjmp init
                                  
-                                 delay_2:
-000046 932f                      	push r18
-000047 933f                      	push r19
-000048 934f                      	push r20
-000049 e029                      	ldi r18, 9
-00004a e13e                      	ldi r19, 30
-00004b ee45                      	ldi r20, 229
-                                 	L2: 
-00004c 954a                      	dec r20
-00004d f7f1                      	brne L2
-00004e 953a                      	dec r19
-00004f f7e1                      	brne L2
-000050 952a                      	dec r18
-000051 f7d1                      	brne L2
-000052 914f                      	pop r20
-000053 913f                      	pop r19
-000054 912f                      	pop r18
-000055 9508                      	ret
+                                 player_wins:
+                                 	; print "YOU WON... " on console
+000067 4f59
+000068 2055
+000069 4f57
+00006a 2e4e
+00006b 2e2e
+00006c 0020                      	hwTable3: .db "YOU WON... ", 0
+00006d e0f0                      	ldi ZH , high (hwTable3<<1)
+00006e ecee                      	ldi ZL , low (hwTable3<<1)
+00006f d009                      	rcall prevent_pts_print ; prevent printing the points on console
+000070 d031                      	rcall send_string
+                                 	; turn both LEDs on for ca. 2 seconds then turn off and start game again
+000071 9a5a                      	sbi PORTD, 2
+000072 9a5b                      	sbi PORTD, 3
+000073 d087                      	rcall delay_3
+000074 d086                      	rcall delay_3
+000075 985a                      	cbi PORTD, 2
+000076 985b                      	cbi PORTD, 3
+000077 d083                      	rcall delay_3
+000078 cf87                      	rjmp init
                                  
-                                 buzzer: 
-000056 9a5e                      	sbi PORTD, 6
-000057 dfee                      	rcall delay_2
-000058 985e                      	cbi PORTD, 6
-000059 6033                      	sbr check_for_error, punishment ; Funktioniert bisher für jede beliebige ungerade Anzahl an Minuspunkten (Bit 0 wird gecheckt)
-00005a 9508                      	ret
+                                 	prevent_pts_print: 
+                                 	; this prevents the points of being printed on the console
+                                 	; by increasing error_counter register until it equals max_errors.
+                                 	; whenever the print function gets called it checks whether 
+                                 	; error_counter is equal to max_errors. 
+                                 	; If that's the case the points don't get printed
+                                 	; because that means it's either "game over" or the user won.
+                                 		loop:			
+000079 94d3                      			inc error_counter
+00007a 2d3d                      			mov r19, error_counter 
+00007b 3033                      			cpi r19, max_errors
+00007c f3e4                      			brlt loop
+00007d e033                      		ldi r19, max_errors
+00007e 9508                      		ret
                                  
-                                 decrease_points:
-00005b 1b63                      	sub points, check_for_error
-00005c 2733                      	clr check_for_error
-00005d 9508                      	ret
+                                 
+                                 buzzer: ; zählt wie oft der ton erklingt
+00007f e034                      	ldi r19, 4 
+000080 1393                      	cpse error_sound_counter, r19 ; compare error_sound_counter with r19 (max: 4)
+000081 c007                      	rjmp sound_on
+000082 e090                      	ldi error_sound_counter, 0 ; setzt counter für nächsten Fehler zurück
+000083 94d3                      	inc error_counter
+000084 e033                      	ldi r19, max_errors
+000085 16d3                      	cp error_counter, r19
+000086 f291                      	breq game_over 
+000087 e330                      	ldi r19, 48 ; load 48 in r19 (ascii_shift)
+000088 9508                      	ret
+                                 
+                                 sound_on : ; speichert 1 sec in register
+000089 e2b9                          ldi  r27, 41
+00008a e9c6                          ldi  r28, 150
+00008b e8d0                          ldi  r29, 128
+00008c c000                      	rjmp B1
+                                 
+                                 B1: ; zählt 1 sec runter & schaltet Ton an
+00008d 95da                      	dec  r29					
+00008e f7f1                          brne B1
+00008f 95ca                          dec  r28
+000090 f7e1                          brne B1
+000091 95ba                          dec  r27
+000092 f7d1                          brne B1
+000093 9a5e                      	sbi PORTD , 6 ; schaltet Ton an  
+000094 9593                      	inc error_sound_counter ; erhöht counter
+000095 c000                      	rjmp sound_off
+                                 
+                                 sound_off : ; speichert 1 sec in register
+000096 e2b9                          ldi  r27, 41
+000097 e9c6                          ldi  r28, 150
+000098 e8d0                          ldi  r29, 128
+000099 c000                      	rjmp B2
+                                 
+                                 B2: ; zählt 1 sec runter & schaltet Ton aus
+00009a 95da                      	dec  r29
+00009b f7f1                          brne B2
+00009c 95ca                          dec  r28
+00009d f7e1                          brne B2
+00009e 95ba                          dec  r27
+00009f f7d1                          brne B2
+0000a0 985e                      	cbi PORTD , 6 ; schaltet Ton aus
+0000a1 cfdd                      	rjmp buzzer
                                  
                                  
-                                 send_current_points:
-00005e e0f0                      	ldi ZH , high (hwTable<<1)
-00005f e0e0                      	ldi ZL , low (hwTable<<1)
+                                 ; send something to the console
+                                 send_string:
+0000a2 2766                      clr first_digit
+0000a3 2777                      clr second_digit
+0000a4 2788                      clr third_digit
                                  
                                  hwLoop:
-000060 9125                      	lpm r18 , Z+
-000061 2322                      	tst r18 ; check for zero , set Z flag
-000062 f021                      	breq endLoop ; if tmp = 0, all chars have been sent
-000063 940e 0077                 	call transmitChar
-000065 940c 0060                 	jmp hwLoop
+0000a5 9125                      	lpm r18 , Z+
+0000a6 2322                      	tst r18 ; check for zero , set Z flag
+0000a7 f021                      	breq endLoop ; if tmp = 0, all chars have been sent
+0000a8 940e 00c1                 	call transmitChar
+0000aa 940c 00a5                 	jmp hwLoop
                                  
                                  endLoop:
-000067 936f                      	push points ; save current points
-000068 d014                      	rcall convert_to_ascii ; convert current points in ascii by saving each digit to a different register
-000069 d01c                      	rcall wait_until_empty ; wait until USART data register is empty
-00006a 9380 00c6                 	sts UDR0, first_digit ; print first digit (10er Stelle) 
-00006c d019                      	rcall wait_until_empty
-00006d 9390 00c6                 	sts UDR0, second_digit ; print second digit (1er Stelle)
-00006f 916f                      	pop points ; get current points from stack
-000070 e02d                      	ldi r18, 13
-000071 940e 0077                 	call transmitChar
-000073 2788                      	clr first_digit
-000074 2799                      	clr second_digit
-000075 9508                      	ret
+0000ac 16d3                      	cp error_counter, r19
+0000ad f061                      	breq game_ends ; don't print points
+                                 
+0000ae 934f                      	push points ; save current points
+0000af d017                      	rcall convert_to_ascii ; convert current points in ascii by saving each digit to a different register
+0000b0 d025                      	rcall wait_until_empty ; wait until USART data register is empty
+0000b1 9360 00c6                 	sts UDR0, first_digit ; print first digit (100er Stelle) 
+0000b3 d022                      	rcall wait_until_empty
+0000b4 9370 00c6                 	sts UDR0, second_digit ; print second digit (10er Stelle)
+0000b6 d01f                      	rcall wait_until_empty
+0000b7 9380 00c6                 	sts UDR0, third_digit ; print second digit (1er Stelle)
+0000b9 914f                      	pop points ; get current points from stack
+                                 	
+                                 	game_ends:
+0000ba e02d                      	ldi r18, 13
+0000bb 940e 00c1                 	call transmitChar
+0000bd 2766                      	clr first_digit
+0000be 2777                      	clr second_digit
+0000bf 9508                      	ret
                                  
                                  handleCRLF:
-000076 e02a                      	ldi r18 , 10
+0000c0 e02a                      	ldi r18 , 10
                                  
                                  transmitChar:
-000077 d00e                      	rcall wait_until_empty
-000078 9320 00c6                 	sts UDR0 , r18 ; write character to UDR0 for transmission
-00007a 302d                      	cpi r18 , 13 ; in case of cr , addtional lf must be send afterwards
-00007b f3d1                      	breq handleCRLF
-00007c 9508                      	ret
+0000c1 d014                      	rcall wait_until_empty
+0000c2 9320 00c6                 	sts UDR0 , r18 ; write character to UDR0 for transmission
+0000c4 302d                      	cpi r18 , 13 ; in case of cr , addtional lf must be send afterwards
+0000c5 f3d1                      	breq handleCRLF
+0000c6 9508                      	ret
                                  
                                  convert_to_ascii:
-                                 	; TODO: convert for three digit numbers
-00007d 306a                      	cpi points, 10 ; check if number is greater than 10
-00007e f424                      	brge div_10 ; "divide" number by 10 (actually just subtract 10 until < 10 and increase counter for every subtration)
-00007f 2f96                      	mov second_digit, points
-000080 0f84                      	add first_digit, ascii_shift ; add 48
-000081 0f94                      	add second_digit, ascii_shift  ; add 48
-000082 9508                      	ret
+0000c7 3644                      	cpi points, 100 ; check if number is greater than 100
+0000c8 f43c                      	brge div_100 ; "divide" number by 100 (actually just subtract 10 until < 100 and increase counter for every subtration)
+0000c9 304a                      	cpi points, 10 ; check if number is greater than 10
+0000ca f444                      	brge div_10 ; "divide" number by 10 (actually just subtract 10 until < 10 and increase counter for every subtration)
+0000cb 2f84                      	mov third_digit, points
+0000cc 0f63                      	add first_digit, ascii_shift ; add 48
+0000cd 0f73                      	add second_digit, ascii_shift  ; add 48
+0000ce 0f83                      	add third_digit, ascii_shift  ; add 48
+0000cf 9508                      	ret
+                                 	div_100:
+0000d0 9563                      		inc first_digit ; increase first digit
+0000d1 5644                      		subi points, 100 ; subtract 10 from points
+0000d2 cff4                      		rjmp convert_to_ascii ; jump back and repeat until less than 100
                                  	div_10:
-000083 9583                      		inc first_digit ; increase first digit
-000084 506a                      		subi points, 10 ; subtract 10 from points
-000085 cff7                      		rjmp convert_to_ascii ; jump back and reapeat until less than 10
+0000d3 9573                      		inc second_digit ; increase first digit
+0000d4 504a                      		subi points, 10 ; subtract 10 from points
+0000d5 cff1                      		rjmp convert_to_ascii ; jump back and repeat until less than 10
                                  	
                                  wait_until_empty:
-000086 9110 00c0                 	lds r17 , UCSR0A
-000088 ff15                      	sbrs r17 , UDRE0
-000089 cffc                      	rjmp wait_until_empty
+0000d6 9110 00c0                 	lds r17 , UCSR0A
+0000d8 ff15                      	sbrs r17 , UDRE0
+0000d9 cffc                      	rjmp wait_until_empty
+0000da 9508                      	ret
+                                 
+                                 delay_1:
+0000db 932f                      	push r18
+0000dc 933f                      	push r19
+0000dd 934f                      	push r20
+0000de e125                      	ldi r18, 21
+0000df e43b                      	ldi r19, 75
+0000e0 eb4f                      	ldi r20, 191
+                                 	L1: 
+0000e1 954a                      	dec r20
+0000e2 f7f1                      	brne L1
+0000e3 953a                      	dec r19
+0000e4 f7e1                      	brne L1
+0000e5 952a                      	dec r18
+0000e6 f7d1                      	brne L1
+0000e7 914f                      	pop r20
+0000e8 913f                      	pop r19
+0000e9 912f                      	pop r18
+0000ea 9508                      	ret
+                                 
+                                 delay_2:
+0000eb 932f                      	push r18
+0000ec 933f                      	push r19
+0000ed 934f                      	push r20
+0000ee e029                      	ldi r18, 9
+0000ef e13e                      	ldi r19, 30
+0000f0 ee45                      	ldi r20, 229
+                                 	L2: 
+0000f1 954a                      	dec r20
+0000f2 f7f1                      	brne L2
+0000f3 953a                      	dec r19
+0000f4 f7e1                      	brne L2
+0000f5 952a                      	dec r18
+0000f6 f7d1                      	brne L2
+0000f7 914f                      	pop r20
+0000f8 913f                      	pop r19
+0000f9 912f                      	pop r18
+0000fa 9508                      	ret
+                                 
+                                 delay_3:
+0000fb 932f                      	push r18
+0000fc 933f                      	push r19
+0000fd 934f                      	push r20
+0000fe e522                      	ldi r18, 82
+0000ff e23b                      	ldi r19, 43
+000100 e040                      	ldi r20, 0
+                                 	L3: 
+000101 954a                      	dec r20
+000102 f7f1                      	brne L3
+000103 953a                      	dec r19
+000104 f7e1                      	brne L3
+000105 952a                      	dec r18
+000106 f7d1                      	brne L3
+000107 914f                      	pop r20
+000108 913f                      	pop r19
+000109 912f                      	pop r18
 
 
 RESOURCE USE INFORMATION
@@ -1200,37 +1372,37 @@ counted separately from r26..r31 here.
 "ATmega328P" register use summary:
 x  :   0 y  :   0 z  :   1 r0 :   0 r1 :   0 r2 :   0 r3 :   0 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:   2 r17:   6 r18:  14 r19:  13 r20:  11 
-r21:   0 r22:   8 r23:   4 r24:   5 r25:   5 r26:   0 r27:   0 r28:   0 
-r29:   0 r30:   1 r31:   1 
-Registers used: 12 out of 35 (34.3%)
+r13:   6 r14:   0 r15:   0 r16:   3 r17:   7 r18:  19 r19:  29 r20:  22 
+r21:   4 r22:  10 r23:  10 r24:   9 r25:   4 r26:   0 r27:   4 r28:   4 
+r29:   4 r30:   3 r31:   3 
+Registers used: 17 out of 35 (48.6%)
 
 "ATmega328P" instruction use summary:
-.lds  :   0 .sts  :   0 adc   :   0 add   :   2 adiw  :   0 and   :   0 
+.lds  :   0 .sts  :   0 adc   :   0 add   :   3 adiw  :   0 and   :   0 
 andi  :   0 asr   :   0 bclr  :   0 bld   :   0 brbc  :   0 brbs  :   0 
-brcc  :   0 brcs  :   0 break :   0 breq  :   2 brge  :   1 brhc  :   0 
-brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   0 brmi  :   0 
-brne  :   6 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
-brvs  :   0 bset  :   0 bst   :   0 call  :   2 cbi   :   5 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   8 cls   :   0 
-clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   0 cpc   :   0 
-cpi   :   2 cpse  :   0 dec   :   8 eor   :   0 fmul  :   0 fmuls :   0 
-fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   2 jmp   :   1 
-ld    :   0 ldd   :   0 ldi   :  14 lds   :   1 lpm   :   1 lsl   :   0 
-lsr   :   0 mov   :   1 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
-neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   0 pop   :   7 
-push  :   7 rcall :  10 ret   :   8 reti  :   0 rjmp  :   8 rol   :   0 
-ror   :   0 sbc   :   0 sbci  :   0 sbi   :   5 sbic  :   4 sbis  :   0 
-sbiw  :   0 sbr   :   1 sbrc  :   2 sbrs  :   1 sec   :   0 seh   :   0 
+brcc  :   0 brcs  :   0 break :   0 breq  :   5 brge  :   2 brhc  :   0 
+brhs  :   0 brid  :   0 brie  :   0 brlo  :   0 brlt  :   1 brmi  :   0 
+brne  :  21 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
+brvs  :   0 bset  :   0 bst   :   0 call  :   2 cbi   :  15 cbr   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :  15 cls   :   0 
+clt   :   0 clv   :   0 clz   :   0 com   :   0 cp    :   3 cpc   :   0 
+cpi   :   4 cpse  :   1 dec   :  23 eor   :   0 fmul  :   0 fmuls :   0 
+fmulsu:   0 icall :   0 ijmp  :   0 in    :   0 inc   :   6 jmp   :   1 
+ld    :   0 ldd   :   0 ldi   :  39 lds   :   1 lpm   :   1 lsl   :   0 
+lsr   :   0 mov   :   2 movw  :   0 mul   :   0 muls  :   0 mulsu :   0 
+neg   :   0 nop   :   0 or    :   0 ori   :   0 out   :   0 pop   :  11 
+push  :  11 rcall :  17 ret   :   9 reti  :   0 rjmp  :  16 rol   :   0 
+ror   :   0 sbc   :   0 sbci  :   0 sbi   :   8 sbic  :   4 sbis  :   0 
+sbiw  :   0 sbr   :   0 sbrc  :   1 sbrs  :   1 sec   :   0 seh   :   0 
 sei   :   0 sen   :   0 ser   :   0 ses   :   0 set   :   0 sev   :   0 
-sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   6 
-sub   :   1 subi  :   1 swap  :   0 tst   :   1 wdr   :   0 
-Instructions used: 29 out of 113 (25.7%)
+sez   :   0 sleep :   0 spm   :   0 st    :   0 std   :   0 sts   :   7 
+sub   :   0 subi  :   2 swap  :   0 tst   :   1 wdr   :   0 
+Instructions used: 30 out of 113 (26.5%)
 
 "ATmega328P" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000116    256     22    278   32768   0.8%
+[.cseg] 0x000000 0x000216    488     46    534   32768   1.6%
 [.dseg] 0x000100 0x000100      0      0      0    2048   0.0%
 [.eseg] 0x000000 0x000000      0      0      0    1024   0.0%
 
